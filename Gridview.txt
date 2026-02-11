@@ -1,0 +1,68 @@
+using System;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace WinFormsEFExample
+{
+    public partial class MainForm : Form
+    {
+        private AppDbContext _context;
+
+        public MainForm()
+        {
+            InitializeComponent();
+            _context = new AppDbContext();
+
+            // Ensure database is created
+            _context.Database.EnsureCreated();
+
+            LoadData();
+        }
+
+        private void LoadData()
+        {
+            // Load data into DataGridView
+            dataGridView1.DataSource = _context.Products.ToList();
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _context.SaveChanges();
+                MessageBox.Show("Changes saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving changes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            var newProduct = new Product
+            {
+                Name = "New Product",
+                Price = 0
+            };
+            _context.Products.Add(newProduct);
+            _context.SaveChanges();
+            LoadData();
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.CurrentRow != null)
+            {
+                var product = dataGridView1.CurrentRow.DataBoundItem as Product;
+                if (product != null)
+                {
+                    _context.Products.Remove(product);
+                    _context.SaveChanges();
+                    LoadData();
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,72 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace NotifyIconExample
+{
+    public class MainForm : Form
+    {
+        private NotifyIcon trayIcon;
+        private ContextMenuStrip trayMenu;
+
+        public MainForm()
+        {
+            // Create a context menu for the tray icon
+            trayMenu = new ContextMenuStrip();
+            trayMenu.Items.Add("Show", null, OnShow);
+            trayMenu.Items.Add("Exit", null, OnExit);
+
+            // Create the tray icon
+            trayIcon = new NotifyIcon
+            {
+                Text = "My WinForms App",
+                Icon = SystemIcons.Application, // You can use your own .ico file
+                ContextMenuStrip = trayMenu,
+                Visible = true
+            };
+
+            // Show a balloon tip when the app starts
+            trayIcon.BalloonTipTitle = "Application Started";
+            trayIcon.BalloonTipText = "Your app is running in the background.";
+            trayIcon.ShowBalloonTip(3000);
+
+            // Handle double-click on the tray icon
+            trayIcon.DoubleClick += OnShow;
+
+            // Optional: Hide the main form on startup
+            this.WindowState = FormWindowState.Minimized;
+            this.ShowInTaskbar = false;
+        }
+
+        // Show the main form
+        private void OnShow(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Normal;
+            this.ShowInTaskbar = true;
+            this.Show();
+            this.BringToFront();
+        }
+
+        // Exit the application
+        private void OnExit(object sender, EventArgs e)
+        {
+            trayIcon.Visible = false; // Remove icon from tray
+            Application.Exit();
+        }
+
+        // Ensure tray icon is removed when form closes
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            trayIcon.Visible = false;
+            base.OnFormClosing(e);
+        }
+
+        [STAThread]
+        public static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
+    }
+}

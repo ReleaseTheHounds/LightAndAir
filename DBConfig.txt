@@ -1,0 +1,1 @@
+scaffold-dbcontext "Server=emv1\sqlexpress;Database=SCBA;Trusted_Connection=True;Encrypt=False" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Table Events -Context ScbaContext -Force

@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SCBAlogger.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="TankPressures" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5500,4500</Value>
+    </Setting>
+    <Setting Name="Jurisdictions" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Stafford,Quantico,Fredricksburg</Value>
+    </Setting>
+    <Setting Name="Operators" Type="System.String" Scope="User">
+      <Value Profile="(Default)">G. Cox,J. OBrien,M. Good</Value>
+    </Setting>
+    <Setting Name="EventName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Some Test Event</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
