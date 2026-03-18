@@ -100,19 +100,18 @@ namespace SCBAlogger
 
         }
 
-        private void OperatorButtonDelete(object sender, EventArgs e)
+        private void OperatorButtonInactivate(object sender, EventArgs e)
         {
             if (operatorComboBox.SelectedValue == null) return;
 
             var id = operatorComboBox.SelectedValue;
 
-            var operatorToRemove = _context.Operators.Find(id);
-            if (operatorToRemove != null)
-            {
-                _context.Operators.Remove(operatorToRemove);
+            var operatorToMarkInactive = _context.Operators.Find(id);
+            if (operatorToMarkInactive != null) {
+                _context.Operators.Remove(operatorToMarkInactive);
                 _context.SaveChanges();
-                eventLog.WriteEntry($"Deleted Operator from database: {operatorToRemove.OperatorName}", EventLogEntryType.Information, 9001);
-                this.toolStripStatusLabel1.Text = "Operator saved.";
+                eventLog.WriteEntry($"Mark Operator Inactive in database: {operatorToMarkInactive.OperatorName}", EventLogEntryType.Information, 9001);
+                this.toolStripStatusLabel1.Text = "Operator  Updated.";
                 this.toolStripStatusLabel1.BackColor = Color.Green;
                 this.toolStripStatusLabel1.ForeColor = Color.White;
                 LoadOperators();

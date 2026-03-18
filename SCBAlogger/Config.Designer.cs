@@ -137,10 +137,10 @@
             buttonDelete.Name = "buttonDelete";
             buttonDelete.Size = new Size(88, 27);
             buttonDelete.TabIndex = 2;
-            buttonDelete.Text = "Delete";
+            buttonDelete.Text = "Mark Inactive";
             toolTip1.SetToolTip(buttonDelete, "Delete this operator from the database");
             buttonDelete.UseVisualStyleBackColor = true;
-            buttonDelete.Click += OperatorButtonDelete;
+            buttonDelete.Click += OperatorButtonInactivate;
             // 
             // buttonAdd
             // 
