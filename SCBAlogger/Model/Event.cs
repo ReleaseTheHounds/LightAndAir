@@ -1,4 +1,7 @@
-﻿namespace SCBAlogger.Model;
+﻿using System;
+using System.Collections.Generic;
+
+namespace SCBAlogger.Model;
 
 public partial class Event
 {
@@ -11,6 +14,10 @@ public partial class Event
     public DateTime? DateEmailed { get; set; }
 
     public DateTime EventDate { get; set; }
+
+    public int? Compressor { get; set; }
+
+    public virtual Compressor? CompressorNavigation { get; set; }
 
     public virtual ICollection<Scan> Scans { get; set; } = new List<Scan>();
 }

@@ -14,5 +14,11 @@
     <Setting Name="EventName" Type="System.String" Scope="User">
       <Value Profile="(Default)">Some Test Event</Value>
     </Setting>
+    <Setting Name="EmailSecretName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Logger Email Address</Value>
+    </Setting>
+    <Setting Name="DestinationEmailAddresses" Type="System.String" Scope="User">
+      <Value Profile="(Default)">gcoxjr@hotmail.com,GCox@staffordcountyva.gov</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

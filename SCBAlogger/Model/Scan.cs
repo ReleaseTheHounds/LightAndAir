@@ -1,4 +1,7 @@
-﻿namespace SCBAlogger.Model;
+﻿using System;
+using System.Collections.Generic;
+
+namespace SCBAlogger.Model;
 
 public partial class Scan
 {

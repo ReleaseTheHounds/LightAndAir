@@ -37,8 +37,9 @@
             createABarcodeToolStripMenuItem = new ToolStripMenuItem();
             programmingBarcodesToolStripMenuItem = new ToolStripMenuItem();
             dataToolStripMenuItem = new ToolStripMenuItem();
-            sendToolStripMenuItem = new ToolStripMenuItem();
+            CreateWorkBoolMenuItem = new ToolStripMenuItem();
             viewToolStripMenuItem = new ToolStripMenuItem();
+            sendWorkBookMenuItem = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
@@ -122,22 +123,31 @@
             // 
             // dataToolStripMenuItem
             // 
-            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { sendToolStripMenuItem, viewToolStripMenuItem });
+            dataToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { CreateWorkBoolMenuItem, viewToolStripMenuItem, sendWorkBookMenuItem });
             dataToolStripMenuItem.Name = "dataToolStripMenuItem";
             dataToolStripMenuItem.Size = new Size(43, 20);
             dataToolStripMenuItem.Text = "&Data";
             // 
-            // sendToolStripMenuItem
+            // CreateWorkBoolMenuItem
             // 
-            sendToolStripMenuItem.Name = "sendToolStripMenuItem";
-            sendToolStripMenuItem.Size = new Size(100, 22);
-            sendToolStripMenuItem.Text = "&Send";
+            CreateWorkBoolMenuItem.Name = "CreateWorkBoolMenuItem";
+            CreateWorkBoolMenuItem.Size = new Size(180, 22);
+            CreateWorkBoolMenuItem.Text = "CreateWorkbooks";
+            CreateWorkBoolMenuItem.Click += Create_Click;
             // 
             // viewToolStripMenuItem
             // 
             viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            viewToolStripMenuItem.Size = new Size(100, 22);
+            viewToolStripMenuItem.Size = new Size(180, 22);
             viewToolStripMenuItem.Text = "&View";
+            viewToolStripMenuItem.Click += Email_Click;
+            // 
+            // sendWorkBookMenuItem
+            // 
+            sendWorkBookMenuItem.Name = "sendWorkBookMenuItem";
+            sendWorkBookMenuItem.Size = new Size(180, 22);
+            sendWorkBookMenuItem.Text = "SendWorkbooks";
+            sendWorkBookMenuItem.Click += Email_Click;
             // 
             // helpToolStripMenuItem
             // 
@@ -341,7 +351,7 @@
             // labelEvent
             // 
             labelEvent.AutoSize = true;
-            labelEvent.Location = new Point(462, 132);
+            labelEvent.Location = new Point(414, 132);
             labelEvent.Margin = new Padding(4, 0, 4, 0);
             labelEvent.Name = "labelEvent";
             labelEvent.Size = new Size(93, 15);
@@ -387,7 +397,7 @@
         private System.Windows.Forms.ToolStripMenuItem configurationToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem dataToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sendToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CreateWorkBoolMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
@@ -413,6 +423,7 @@
         private System.Windows.Forms.GroupBox groupBoxCondition;
         private System.Windows.Forms.Label labelEvent;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private ToolStripMenuItem sendWorkBookMenuItem;
     }
 }
 

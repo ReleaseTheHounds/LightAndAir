@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace DBTest.Model;
+namespace SCBAlogger.Model;
 
 public partial class ScbaContext : DbContext
 {
     public ScbaContext()
     {
+        Console.WriteLine("EF Core provider: " + this.Database.ProviderName);
+        Console.WriteLine("EF Core connection: " + this.Database.GetConnectionString());
+
     }
 
     public ScbaContext(DbContextOptions<ScbaContext> options)
@@ -23,15 +26,21 @@ public partial class ScbaContext : DbContext
 
     public virtual DbSet<ScannedTank> ScannedTanks { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=EMV1\\SQLEXPRESS;Initial Catalog=SCBA;Integrated Security=True;Encrypt=True;Trust Server Certificate=True");
+    public virtual DbSet<UnprocessedEvents> UnprocessedEvents { get; set; }
+
+    public virtual DbSet<EventScans> EventScans { get; set; }  
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Event>(entity =>
         {
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.DateEmailed).HasColumnType("datetime");
+            entity.Property(e => e.EventDate)
+                .HasDefaultValueSql("(getdate())", "DF_Events_EventDate")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ExcelFileName).HasMaxLength(80);
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
@@ -85,6 +94,12 @@ public partial class ScbaContext : DbContext
             entity.Property(e => e.OperatorName).HasMaxLength(25);
             entity.Property(e => e.SerialNumber).HasMaxLength(12);
         });
+
+        //modelBuilder.Entity<UnprocessedEvents>().HasNoKey();
+        modelBuilder.Entity<EventScans>().HasNoKey();
+
+
+
 
         OnModelCreatingPartial(modelBuilder);
     }

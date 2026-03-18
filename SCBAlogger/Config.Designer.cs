@@ -38,26 +38,26 @@
             buttonDelete = new Button();
             buttonAdd = new Button();
             operatorComboBox = new ComboBox();
+            operatorBindingSource = new BindingSource(components);
             tabJuristictions = new TabPage();
             JurisdictionDeleteButton = new Button();
             JurisdictionAddButton = new Button();
             jurisdictionComboBox = new ComboBox();
+            jurisdictionBindingSource = new BindingSource(components);
             toolTipEventSave = new ToolTip(components);
             eventLog = new System.Diagnostics.EventLog();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             btnDismiss = new Button();
             toolTip1 = new ToolTip(components);
-            jurisdictionBindingSource = new BindingSource(components);
-            operatorBindingSource = new BindingSource(components);
             TabControlConfig.SuspendLayout();
             tabEvent.SuspendLayout();
             tabOperators.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)operatorBindingSource).BeginInit();
             tabJuristictions.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)jurisdictionBindingSource).BeginInit();
             ((System.ComponentModel.ISupportInitialize)eventLog).BeginInit();
             statusStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)jurisdictionBindingSource).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)operatorBindingSource).BeginInit();
             SuspendLayout();
             // 
             // TabControlConfig
@@ -165,6 +165,10 @@
             operatorComboBox.Size = new Size(185, 23);
             operatorComboBox.TabIndex = 0;
             // 
+            // operatorBindingSource
+            // 
+            operatorBindingSource.DataSource = typeof(Model.Operator);
+            // 
             // tabJuristictions
             // 
             tabJuristictions.BackColor = Color.Khaki;
@@ -215,6 +219,10 @@
             jurisdictionComboBox.Size = new Size(185, 23);
             jurisdictionComboBox.TabIndex = 0;
             // 
+            // jurisdictionBindingSource
+            // 
+            jurisdictionBindingSource.DataSource = typeof(Model.Jurisdiction);
+            // 
             // toolTipEventSave
             // 
             toolTipEventSave.IsBalloon = true;
@@ -242,6 +250,7 @@
             // 
             // btnDismiss
             // 
+            btnDismiss.DialogResult = DialogResult.OK;
             btnDismiss.Location = new Point(517, 38);
             btnDismiss.Name = "btnDismiss";
             btnDismiss.Size = new Size(55, 23);
@@ -255,14 +264,6 @@
             // 
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.ToolTipTitle = "What dos this button do?";
-            // 
-            // jurisdictionBindingSource
-            // 
-            jurisdictionBindingSource.DataSource = typeof(SCBAlogger.Model.Jurisdiction);
-            // 
-            // operatorBindingSource
-            // 
-            operatorBindingSource.DataSource = typeof(SCBAlogger.Model.Operator);
             // 
             // Config
             // 
@@ -286,12 +287,12 @@
             tabEvent.ResumeLayout(false);
             tabEvent.PerformLayout();
             tabOperators.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)operatorBindingSource).EndInit();
             tabJuristictions.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)jurisdictionBindingSource).EndInit();
             ((System.ComponentModel.ISupportInitialize)eventLog).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)jurisdictionBindingSource).EndInit();
-            ((System.ComponentModel.ISupportInitialize)operatorBindingSource).EndInit();
             ResumeLayout(false);
             PerformLayout();
 

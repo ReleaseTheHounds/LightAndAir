@@ -70,5 +70,29 @@ namespace SCBAlogger.Properties {
                 this["EventName"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Logger Email Address")]
+        public string EmailSecretName {
+            get {
+                return ((string)(this["EmailSecretName"]));
+            }
+            set {
+                this["EmailSecretName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("gcoxjr@hotmail.com,GCox@staffordcountyva.gov")]
+        public string DestinationEmailAddresses {
+            get {
+                return ((string)(this["DestinationEmailAddresses"]));
+            }
+            set {
+                this["DestinationEmailAddresses"] = value;
+            }
+        }
     }
 }

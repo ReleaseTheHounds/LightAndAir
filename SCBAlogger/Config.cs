@@ -1,4 +1,5 @@
 ﻿using SCBAlogger.Model;
+using SCBAlogger.Data;
 using System.Data;
 using System.Diagnostics;
 
@@ -10,7 +11,7 @@ namespace SCBAlogger
 {
     public partial class Config : Form
     {
-        private ScbaContext _context;
+        private SCBAContext _context;
         public bool is_updated = false;
         public string ConfiguredEventName { get; private set; } = "";
         readonly private short category = 1;
@@ -20,7 +21,8 @@ namespace SCBAlogger
         public Config()
         {
             InitializeComponent();
-            _context = new ScbaContext();
+            // Is the the problem child with the DI???
+            _context = new SCBAContext();
             eventLog.Source = source;
             eventLog.Log = logName;
         }

@@ -4,12 +4,7 @@
     <File Path="DBConfig.txt" />
     <File Path="Gridview.txt" />
     <File Path="NotifyIcon.txt" />
+    <File Path="TextFile1.txt" />
   </Folder>
-  <Project Path="ComboBoxTest/ComboBoxTest.csproj" Id="6265e859-e9a0-49d0-9ceb-b9a48337137b" />
-  <Project Path="CreateCredentials/CreateCredentials.csproj" />
-  <Project Path="CreateLogSource/CreateLogSource.csproj" />
-  <Project Path="CreateSpreadSheet/CreateSpreadSheet.csproj" Id="3bb8f7cd-b741-4602-8961-8387593228fd" />
-  <Project Path="DBTest/DBTest.csproj" Id="14d8c1c9-aea3-4aae-9f85-12da655a7756" />
   <Project Path="SCBAlogger/SCBAlogger.csproj" />
-  <Project Path="WinFormsApp1/WinFormsApp1.csproj" Id="8fc062fb-883c-4627-98d8-c1198a4b0c31" />
 </Solution>

@@ -1,4 +1,7 @@
-﻿namespace SCBAlogger.Model;
+﻿using System;
+using System.Collections.Generic;
+
+namespace SCBAlogger.Model;
 
 public partial class ScannedTank
 {
@@ -15,4 +18,6 @@ public partial class ScannedTank
     public string OperatorName { get; set; } = null!;
 
     public string Name { get; set; } = null!;
+
+    public string Compressor { get; set; } = null!;
 }
