@@ -51,10 +51,10 @@ namespace SCBAlogger
 
             // Resolve connection string priority:
             // 1. appsettings.json / appsettings.{Machine}.json -> "ConnectionStrings:DefaultConnection"
-            // 2. Environment variable "SCBALOGGER_CONNECTION"
+            // 2. Environment variable "SCBAlogger_CONNECTION"
             // 3. Fallback to local SQLExpress instance
             string connFromConfig = configuration.GetConnectionString("DefaultConnection");
-            string connFromEnv = Environment.GetEnvironmentVariable("SCBALOGGER_CONNECTION");
+            string connFromEnv = Environment.GetEnvironmentVariable("SCBAlogger_CONNECTION");
             string conn = connFromConfig
                           ?? connFromEnv
                           ?? @"Data Source=.\SQLEXPRESS;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30";
@@ -63,6 +63,10 @@ namespace SCBAlogger
                 options.UseSqlServer(conn));
 
             services.AddTransient<Main>();
+            services.AddTransient<Config>();
+            services.AddTransient<ProgressDialog>();
+
+
         }
     }
 }

@@ -14,7 +14,7 @@ namespace SCBAlogger
             this.labelCompanyName.Text = AssemblyCompany;
             this.textBoxDescription.Text = AssemblyDescription;
         }
-
+        // now is the time
         #region Assembly Attribute Accessors
 
         public string AssemblyTitle

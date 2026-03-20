@@ -8,7 +8,7 @@ namespace SCBAlogger
 {
     internal class WindowsLog
     {   static public string LogName = "Application";
-        static  public string Source  = "SCBALogger";
+        static  public string Source  = "SCBAlogger";
         public int EventID { get; set; }
         public string Message { get; set; }
         public DateTime TimeGenerated { get; set; }

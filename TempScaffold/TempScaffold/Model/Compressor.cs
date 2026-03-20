@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SCBAlogger.Model;
+namespace SCBALogger;
 
 public partial class Compressor
 {

@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SCBAlogger.Model;
+namespace SCBALogger;
 
 public partial class Jurisdiction
 {
     public int Id { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string Jurisdiction1 { get; set; } = null!;
 
-    public bool IsActive { get; set; }
+    public bool? IsActive { get; set; }
 
     public virtual ICollection<Scan> Scans { get; set; } = new List<Scan>();
 }

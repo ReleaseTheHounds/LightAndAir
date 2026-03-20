@@ -1,6 +1,8 @@
 ﻿using AdysTech.CredentialManager;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
+
 //using OfficeOpenXml;
 using SCBAlogger.Data;
 using SCBAlogger.Model;
@@ -13,6 +15,7 @@ using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using ZXing.Client.Result;
 
 namespace SCBAlogger
 {
@@ -23,15 +26,18 @@ namespace SCBAlogger
         private string eventName = "";
         readonly private static string serialNumberRegEx = "[A-Z]{3}[0-9]{6}";
         readonly private static string hydrostatDateRegEx = "[0-9]{4}";
-        private string source = "SCBALogger";
+        private string source = "SCBAlogger";
         private string logName = "Application";
         private readonly SCBAContext _context;
-        private BindingSource _bindingSource = new BindingSource();
-        private Boolean isValidHydrostate   = false;
+        private readonly Config _config;
+        // Binding sources for the controls
+        private BindingSource _bindingSourceScans = new BindingSource();
+        private BindingSource _bindingSourceOperators = new BindingSource();
+        private BindingSource _bindingSourceJurisdictions = new BindingSource();
+        private Boolean isValidHydrostate = false;
         private Boolean isValidSerialNumber = false;
-
-
-
+        private readonly IServiceProvider _services;
+        private bool _isShuttingDown = false;   
         // Parameterless constructor kept for designer support
         public Main()
         {
@@ -40,14 +46,13 @@ namespace SCBAlogger
         }
 
         // Constructor used by DI at runtime
-        public Main(SCBAContext context)
+        public Main(SCBAContext context, IServiceProvider services)
         {
-            _context = context;
             InitializeComponent();
+            _context = context;
+            _services = services;
+            this.FormClosing += MainForm_FormClosing;
 
-
-      
-       
             this.Shown += Main_Shown;
         }
 
@@ -57,38 +62,31 @@ namespace SCBAlogger
             {
                 WindowsPrincipal principal = new WindowsPrincipal(identity);
                 return principal.IsInRole(WindowsBuiltInRole.Administrator);
-
             }
         }
+
 
         // Check to see if the event source is available if not create it and log the start
         private void Main_Shown(object sender, EventArgs e)
         {
             try
             {
-
-
                 if (!EventLog.SourceExists(source))
-
                 {
                     // TODO: shell out to the CreateLog source with UAC to create the log source if not running as adming.
                 }
-
                 eventLog.Source = source;
                 eventLog.Log = logName;
                 eventLog.WriteEntry("Started", EventLogEntryType.Information, 10000, category);
                 System.Diagnostics.Debug.WriteLine(SCBAlogger.Properties.Settings.Default.TankPressures);
-                AddUserPropertiesToListBox(pressureListbox, SCBAlogger.Properties.Settings.Default.TankPressures);
-                AddUserPropertiesToListBox(jurisdictionListbox, SCBAlogger.Properties.Settings.Default.Jurisdictions);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Logging failed: {ex.Message}");
-
             }
 
-            
-
+            // Tank Pressure
+            AddUserPropertiesToListBox(pressureListbox, SCBAlogger.Properties.Settings.Default.TankPressures);
 
             bool iscreated = false;
             try
@@ -102,21 +100,61 @@ namespace SCBAlogger
                 iscreated = false;
             }
 
-
-
             if (!iscreated)
             {
-                MessageBox.Show("Cannot connect to the database. Check your connection string (appsettings.json or SCBALOGGER_CONNECTION) and ensure SQL Server is available.", "Database Connection", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Cannot connect to the database. Check your connection string (appsettings.json or SCBAlogger_CONNECTION) and ensure SQL Server is available.", "Database Connection", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.applicationStatus.Text = "DB Unavailable";
                 this.applicationStatus.BackColor = Color.IndianRed;
                 dataGridView1.DataSource = null;
                 return;
             }
 
-            _bindingSource.DataSource = _context.ScannedTanks.ToList();
-            dataGridView1.DataSource = _bindingSource;
+            UpdateOperatorList();
+            UpdateJurisdictionList();
+             
         }
 
+        #region Control Updaters
+
+        private void UpdateJurisdictionList()
+        {
+            var filteredJurisdictions = _context.Jurisdictions
+               .Where(j => j.IsActive).ToList();
+
+            JurisdictionCombo.DataSource = filteredJurisdictions;
+        }
+       
+        private void UpdateScannedTanksGrid()
+        {
+            Console.Write(this.eventName);
+            string x = "Training Event";
+            var filteredScans = _context.ScannedTanks.Where(s => s.Name == x).ToList();
+            this.dataGridView1.DataSource = filteredScans;
+        }
+
+        private void UpdateOperatorList()
+        {
+            var filteredOperators = _context.Operators
+                    .Where(o => o.IsActive)
+                       .OrderBy(o => o.OperatorName)
+                       .ToList();
+
+            comboBoxOperators.DataSource = filteredOperators;
+        }
+
+        #endregion
+
+        #region Evemt Handlers
+        private void CreateABarcodeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (CreateBarcode dialog = new CreateBarcode())
+            {
+                if (dialog.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+                {
+                    // Eventually may want to do something with the returned image.
+                }
+            }
+        }
         private void HelpToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -124,7 +162,7 @@ namespace SCBAlogger
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           
+
         }
 
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -137,35 +175,121 @@ namespace SCBAlogger
 
         private void ConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (Config dialog = new Config())
+            var child = _services.GetRequiredService<Config>();
+
+
+            if (child.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
             {
-                if (dialog.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+                this.applicationStatus.Text = "Ready";
+                this.applicationStatus.BackColor = Color.Green;
+                this.scannerData.Enabled = true;
+
+                if (child.is_updated)
                 {
-                    this.applicationStatus.Text = "Ready";
-                    this.applicationStatus.BackColor = Color.Green;
-                    this.scannerData.Enabled = true;
+                    eventLog.WriteEntry("Application Config updated", EventLogEntryType.Information, 10002);
+                    this.toolStripStatusLabel2.Text = "Configuration Updated";
 
-                    if (dialog.is_updated)
-                    {
-                        eventLog.WriteEntry("Application Config updated", EventLogEntryType.Information, 10002);
-                        this.toolStripStatusLabel2.Text = "Configuration Updated";
-                        eventName = SCBAlogger.Properties.Settings.Default.EventName;
-
-                        this.labelEvent.Text = "Event: " + eventName;
-
-                    }
-
-
+                    eventName = SCBAlogger.Properties.Settings.Default.EventName;
+                    this.labelScans.Text = "Event: " + eventName;
+                    this.labelScans.ForeColor = SystemColors.ControlText;
+                    this.labelScans.BackColor = SystemColors.Control;
                 }
 
+                UpdateScannedTanksGrid();
+                UpdateOperatorList();
+                UpdateJurisdictionList();
             }
 
+
+
             eventLog.WriteEntry("Application Configured", EventLogEntryType.Information, 10003, category);
+        }
+
+        private void sendToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Cursor.Current = Cursors.WaitCursor;
+            //CreateNewWorkBook();
+            //Cursor.Current = Cursors.Default;
 
 
         }
 
+        //protected override void OnFormClosing(FormClosingEventArgs e)
+        //{
+        //    base.OnFormClosing(e);
 
+        //    var x = 2 + 4;
+        //    // This fires when:
+        //    // - User clicks X
+        //    // - Application.Exit()
+        //    // - Environment.Exit()
+        //    // - Windows shutdown/logoff (Reason = WindowsShutDown)
+        //}
+
+        #region Shutdown
+
+        private async void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_isShuttingDown)
+                return;
+
+            e.Cancel = true; // prevent immediate close
+            _isShuttingDown = true;
+
+            var dlg = _services.GetRequiredService<ProgressDialog>();
+            dlg.Show();
+
+           await RunShutdownTasksAsync(dlg);
+
+            dlg.Close();
+            this.Close();
+
+        }
+
+        private async Task RunShutdownTasksAsync(ProgressDialog dlg)
+        {
+            int step = 0;
+            int total = 3; // number of tasks
+
+            dlg.UpdateStatus("Saving operator changes...", Percent(++step, total));
+            await Task.Delay(1000);
+            await SaveOperatorChangesAsync();
+            
+            dlg.UpdateStatus("Flushing logs...", Percent(++step, total));
+            await Task.Delay(1000);
+            await FlushLogsAsync();
+
+            dlg.UpdateStatus("Closing database...", Percent(++step, total));
+            await Task.Delay(1000);
+            await CloseDatabaseAsync();
+        }
+
+        private int Percent(int step, int total)
+        {
+            return (int)((step / (double)total) * 100);
+        }
+
+        private async Task SaveOperatorChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task FlushLogsAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task CloseDatabaseAsync()
+        {
+            await _context.Database.CloseConnectionAsync();
+        }
+
+
+        #endregion
+
+        #endregion
+
+        #region input handlers
 
         private void HydrostatUpdate(string text)
         {
@@ -193,7 +317,7 @@ namespace SCBAlogger
             string scannerString = this.scannerData.Text.Trim();
             Regex serialNumberTest = new Regex(serialNumberRegEx, RegexOptions.None);
             Regex hydostatDateTest = new Regex(hydrostatDateRegEx, RegexOptions.None);
-            
+
 
             if (serialNumberTest.IsMatch(scannerString))
             {
@@ -211,22 +335,16 @@ namespace SCBAlogger
 
         }
 
-        private void CreateABarcodeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using (CreateBarcode dialog = new CreateBarcode())
-            {
-                if (dialog.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
-                {
-                    // Eventually may want to do something with the returned image.
-                }
-            }
-        }
+        #endregion
+
+    
 
         private void Main_Load(object sender, EventArgs e)
         {
 
         }
 
+        //TODO: Pull this data from the database if it is available
         private void AddUserPropertiesToListBox(object sender, string foo)
         {
             ListBox lb = (ListBox)sender;
@@ -234,17 +352,9 @@ namespace SCBAlogger
             lb.Items.Clear();
             lb.Items.AddRange(array);
 
-
         }
 
-        private void sendToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // Cursor.Current = Cursors.WaitCursor;
-            //CreateNewWorkBook();
-            //Cursor.Current = Cursors.Default;
-
-
-        }
+    
 
         //private void CreateNewWorkBook()
         //{
@@ -363,8 +473,13 @@ namespace SCBAlogger
 
         private void Create_Click(object sender, EventArgs e)
         {
-           // CreateNewWorkBook();
+            // CreateNewWorkBook();
 
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
 
         }
     }

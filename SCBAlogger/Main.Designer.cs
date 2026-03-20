@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
@@ -47,11 +48,14 @@
             toolStripStatusLabel2 = new ToolStripStatusLabel();
             eventLog = new System.Diagnostics.EventLog();
             groupBox1 = new GroupBox();
+            label5 = new Label();
+            comboBoxOperators = new ComboBox();
+            operatorBindingSource = new BindingSource(components);
+            labelPressure = new Label();
             groupBoxCondition = new GroupBox();
             radioButtonOssDate = new RadioButton();
             radioButtonOosDamage = new RadioButton();
             radioButtonGood = new RadioButton();
-            jurisdictionListbox = new ListBox();
             pressureListbox = new ListBox();
             label2 = new Label();
             hydrostatText = new TextBox();
@@ -60,13 +64,18 @@
             scannerData = new TextBox();
             label3 = new Label();
             dataGridView1 = new DataGridView();
-            labelEvent = new Label();
+            labelScans = new Label();
+            operatorBindingSource1 = new BindingSource(components);
+            JurisdictionCombo = new ComboBox();
+            label4 = new Label();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)eventLog).BeginInit();
             groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)operatorBindingSource).BeginInit();
             groupBoxCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)operatorBindingSource1).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -105,7 +114,7 @@
             // 
             scannerToolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { createABarcodeToolStripMenuItem, programmingBarcodesToolStripMenuItem });
             scannerToolsToolStripMenuItem.Name = "scannerToolsToolStripMenuItem";
-            scannerToolsToolStripMenuItem.Size = new Size(92, 20);
+            scannerToolsToolStripMenuItem.Size = new Size(91, 20);
             scannerToolsToolStripMenuItem.Text = "Scanner Tools";
             // 
             // createABarcodeToolStripMenuItem
@@ -131,21 +140,21 @@
             // CreateWorkBoolMenuItem
             // 
             CreateWorkBoolMenuItem.Name = "CreateWorkBoolMenuItem";
-            CreateWorkBoolMenuItem.Size = new Size(180, 22);
+            CreateWorkBoolMenuItem.Size = new Size(168, 22);
             CreateWorkBoolMenuItem.Text = "CreateWorkbooks";
             CreateWorkBoolMenuItem.Click += Create_Click;
             // 
             // viewToolStripMenuItem
             // 
             viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            viewToolStripMenuItem.Size = new Size(180, 22);
+            viewToolStripMenuItem.Size = new Size(168, 22);
             viewToolStripMenuItem.Text = "&View";
             viewToolStripMenuItem.Click += Email_Click;
             // 
             // sendWorkBookMenuItem
             // 
             sendWorkBookMenuItem.Name = "sendWorkBookMenuItem";
-            sendWorkBookMenuItem.Size = new Size(180, 22);
+            sendWorkBookMenuItem.Size = new Size(168, 22);
             sendWorkBookMenuItem.Text = "SendWorkbooks";
             sendWorkBookMenuItem.Click += Email_Click;
             // 
@@ -187,8 +196,7 @@
             // toolStripStatusLabel2
             // 
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            toolStripStatusLabel2.Size = new Size(118, 17);
-            toolStripStatusLabel2.Text = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new Size(0, 17);
             // 
             // eventLog
             // 
@@ -196,8 +204,12 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(label4);
+            groupBox1.Controls.Add(JurisdictionCombo);
+            groupBox1.Controls.Add(label5);
+            groupBox1.Controls.Add(comboBoxOperators);
+            groupBox1.Controls.Add(labelPressure);
             groupBox1.Controls.Add(groupBoxCondition);
-            groupBox1.Controls.Add(jurisdictionListbox);
             groupBox1.Controls.Add(pressureListbox);
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(hydrostatText);
@@ -211,6 +223,38 @@
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
             groupBox1.Text = "Crurent Bottle";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(13, 187);
+            label5.Name = "label5";
+            label5.Size = new Size(54, 15);
+            label5.TabIndex = 13;
+            label5.Text = "Operator";
+            // 
+            // comboBoxOperators
+            // 
+            comboBoxOperators.DataSource = operatorBindingSource;
+            comboBoxOperators.DisplayMember = "OperatorName";
+            comboBoxOperators.FormattingEnabled = true;
+            comboBoxOperators.Location = new Point(112, 187);
+            comboBoxOperators.Name = "comboBoxOperators";
+            comboBoxOperators.Size = new Size(121, 23);
+            comboBoxOperators.TabIndex = 12;
+            // 
+            // operatorBindingSource
+            // 
+            operatorBindingSource.DataSource = typeof(Model.Operator);
+            // 
+            // labelPressure
+            // 
+            labelPressure.AutoSize = true;
+            labelPressure.Location = new Point(13, 129);
+            labelPressure.Name = "labelPressure";
+            labelPressure.Size = new Size(51, 15);
+            labelPressure.TabIndex = 10;
+            labelPressure.Text = "Pressure";
             // 
             // groupBoxCondition
             // 
@@ -262,15 +306,6 @@
             radioButtonGood.Text = "Good";
             radioButtonGood.UseVisualStyleBackColor = true;
             // 
-            // jurisdictionListbox
-            // 
-            jurisdictionListbox.FormattingEnabled = true;
-            jurisdictionListbox.Location = new Point(112, 201);
-            jurisdictionListbox.Margin = new Padding(4, 3, 4, 3);
-            jurisdictionListbox.Name = "jurisdictionListbox";
-            jurisdictionListbox.Size = new Size(139, 49);
-            jurisdictionListbox.TabIndex = 5;
-            // 
             // pressureListbox
             // 
             pressureListbox.FormattingEnabled = true;
@@ -283,12 +318,13 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(7, 87);
+            label2.Location = new Point(10, 87);
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(79, 15);
+            label2.Size = new Size(86, 15);
             label2.TabIndex = 3;
-            label2.Text = "Hyrostat Date";
+            label2.Text = "Hydrostat Date";
+            label2.Click += label2_Click;
             // 
             // hydrostatText
             // 
@@ -302,7 +338,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(7, 40);
+            label1.Location = new Point(10, 43);
             label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
             label1.Size = new Size(52, 15);
@@ -348,22 +384,45 @@
             dataGridView1.Size = new Size(447, 332);
             dataGridView1.TabIndex = 4;
             // 
-            // labelEvent
+            // labelScans
             // 
-            labelEvent.AutoSize = true;
-            labelEvent.Location = new Point(414, 132);
-            labelEvent.Margin = new Padding(4, 0, 4, 0);
-            labelEvent.Name = "labelEvent";
-            labelEvent.Size = new Size(93, 15);
-            labelEvent.TabIndex = 5;
-            labelEvent.Text = "labelEventName";
+            labelScans.AutoSize = true;
+            labelScans.BackColor = SystemColors.Highlight;
+            labelScans.ForeColor = SystemColors.ControlLightLight;
+            labelScans.Location = new Point(414, 132);
+            labelScans.Margin = new Padding(4, 0, 4, 0);
+            labelScans.Name = "labelScans";
+            labelScans.Size = new Size(169, 15);
+            labelScans.TabIndex = 5;
+            labelScans.Text = "waiting for event identification";
+            // 
+            // operatorBindingSource1
+            // 
+            operatorBindingSource1.DataSource = typeof(Model.Operator);
+            // 
+            // JurisdictionCombo
+            // 
+            JurisdictionCombo.FormattingEnabled = true;
+            JurisdictionCombo.Location = new Point(110, 237);
+            JurisdictionCombo.Name = "JurisdictionCombo";
+            JurisdictionCombo.Size = new Size(121, 23);
+            JurisdictionCombo.TabIndex = 14;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(13, 240);
+            label4.Name = "label4";
+            label4.Size = new Size(67, 15);
+            label4.TabIndex = 15;
+            label4.Text = "Jurisdiction";
             // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1029, 554);
-            Controls.Add(labelEvent);
+            Controls.Add(labelScans);
             Controls.Add(dataGridView1);
             Controls.Add(label3);
             Controls.Add(scannerData);
@@ -382,9 +441,11 @@
             ((System.ComponentModel.ISupportInitialize)eventLog).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)operatorBindingSource).EndInit();
             groupBoxCondition.ResumeLayout(false);
             groupBoxCondition.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)operatorBindingSource1).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -416,14 +477,20 @@
         private System.Windows.Forms.ToolStripMenuItem programmingBarcodesToolStripMenuItem;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ListBox pressureListbox;
-        private System.Windows.Forms.ListBox jurisdictionListbox;
         private System.Windows.Forms.RadioButton radioButtonOosDamage;
         private System.Windows.Forms.RadioButton radioButtonGood;
         private System.Windows.Forms.RadioButton radioButtonOssDate;
         private System.Windows.Forms.GroupBox groupBoxCondition;
-        private System.Windows.Forms.Label labelEvent;
+        private System.Windows.Forms.Label labelScans;
         private System.Windows.Forms.DataGridView dataGridView1;
         private ToolStripMenuItem sendWorkBookMenuItem;
+        private Label label5;
+        private ComboBox comboBoxOperators;
+        private BindingSource operatorBindingSource;
+        private Label labelPressure;
+        private BindingSource operatorBindingSource1;
+        private Label label4;
+        private ComboBox JurisdictionCombo;
     }
 }
 

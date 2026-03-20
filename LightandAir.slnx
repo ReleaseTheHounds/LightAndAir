@@ -7,4 +7,5 @@
     <File Path="TextFile1.txt" />
   </Folder>
   <Project Path="SCBAlogger/SCBAlogger.csproj" />
+  <Project Path="TempScaffold/TempScaffold/TempScaffold.csproj" />
 </Solution>

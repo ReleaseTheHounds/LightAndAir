@@ -50,7 +50,7 @@ namespace SCBAlogger
 
                 BarcodeImage.Image = bitmap;
                 System.Windows.Forms.Clipboard.SetImage(bitmap);
-                EventLog.WriteEntry("SCBALogger", $"Created a barcode for {BarcodeTextBox.Text} and copied it to the clipboard.", EventLogEntryType.Information, 30003, 1);
+                EventLog.WriteEntry("SCBAlogger", $"Created a barcode for {BarcodeTextBox.Text} and copied it to the clipboard.", EventLogEntryType.Information, 30003, 1);
 
             }
         }
