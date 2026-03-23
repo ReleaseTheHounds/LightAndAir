@@ -1,12 +1,13 @@
 
 // Language: C#
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using SCBAlogger.Data;
+using SCBAlogger.Model;
+using SCBAlogger.Services;
 using System;
 using System.Windows.Forms;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using SCBAlogger.Model;
-using SCBAlogger.Data;
 
 namespace SCBAlogger
 {
@@ -65,6 +66,13 @@ namespace SCBAlogger
             services.AddTransient<Main>();
             services.AddTransient<Config>();
             services.AddTransient<ProgressDialog>();
+            services.AddDbContext<SCBAContext>();
+            services.AddScoped<IDatabaseExecutionService, DatabaseExecutionService>();
+            services.AddScoped<JurisdictionService>();
+            services.AddScoped<EventService>();
+            services.AddScoped<WorkbookGenerator>();
+
+
 
 
         }

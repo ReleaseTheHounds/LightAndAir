@@ -48,6 +48,8 @@
             toolStripStatusLabel2 = new ToolStripStatusLabel();
             eventLog = new System.Diagnostics.EventLog();
             groupBox1 = new GroupBox();
+            label4 = new Label();
+            JurisdictionCombo = new ComboBox();
             label5 = new Label();
             comboBoxOperators = new ComboBox();
             operatorBindingSource = new BindingSource(components);
@@ -66,8 +68,7 @@
             dataGridView1 = new DataGridView();
             labelScans = new Label();
             operatorBindingSource1 = new BindingSource(components);
-            JurisdictionCombo = new ComboBox();
-            label4 = new Label();
+            jurisdictionBindingSource = new BindingSource(components);
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)eventLog).BeginInit();
@@ -76,6 +77,7 @@
             groupBoxCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)operatorBindingSource1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)jurisdictionBindingSource).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -223,6 +225,25 @@
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
             groupBox1.Text = "Crurent Bottle";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(13, 240);
+            label4.Name = "label4";
+            label4.Size = new Size(67, 15);
+            label4.TabIndex = 15;
+            label4.Text = "Jurisdiction";
+            // 
+            // JurisdictionCombo
+            // 
+            JurisdictionCombo.DataSource = jurisdictionBindingSource;
+            JurisdictionCombo.DisplayMember = "Name";
+            JurisdictionCombo.FormattingEnabled = true;
+            JurisdictionCombo.Location = new Point(110, 237);
+            JurisdictionCombo.Name = "JurisdictionCombo";
+            JurisdictionCombo.Size = new Size(121, 23);
+            JurisdictionCombo.TabIndex = 14;
             // 
             // label5
             // 
@@ -400,22 +421,9 @@
             // 
             operatorBindingSource1.DataSource = typeof(Model.Operator);
             // 
-            // JurisdictionCombo
+            // jurisdictionBindingSource
             // 
-            JurisdictionCombo.FormattingEnabled = true;
-            JurisdictionCombo.Location = new Point(110, 237);
-            JurisdictionCombo.Name = "JurisdictionCombo";
-            JurisdictionCombo.Size = new Size(121, 23);
-            JurisdictionCombo.TabIndex = 14;
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(13, 240);
-            label4.Name = "label4";
-            label4.Size = new Size(67, 15);
-            label4.TabIndex = 15;
-            label4.Text = "Jurisdiction";
+            jurisdictionBindingSource.DataSource = typeof(Model.Jurisdiction);
             // 
             // Main
             // 
@@ -446,6 +454,7 @@
             groupBoxCondition.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ((System.ComponentModel.ISupportInitialize)operatorBindingSource1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)jurisdictionBindingSource).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -491,6 +500,7 @@
         private BindingSource operatorBindingSource1;
         private Label label4;
         private ComboBox JurisdictionCombo;
+        private BindingSource jurisdictionBindingSource;
     }
 }
 

@@ -7,8 +7,10 @@ using Microsoft.Win32;
 using SCBAlogger.Data;
 using SCBAlogger.Model;
 using SCBAlogger.Properties;
+using SCBAlogger.Services;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Drawing.Text;
 using System.Globalization;
 using System.Net;
 using System.Security.Principal;
@@ -37,7 +39,12 @@ namespace SCBAlogger
         private Boolean isValidHydrostate = false;
         private Boolean isValidSerialNumber = false;
         private readonly IServiceProvider _services;
-        private bool _isShuttingDown = false;   
+        private bool _isShuttingDown = false;
+        private readonly EventService _eventService;
+        private readonly WorkbookGenerator _workbookGenerator;
+
+
+        #region Main Constructors
         // Parameterless constructor kept for designer support
         public Main()
         {
@@ -51,20 +58,15 @@ namespace SCBAlogger
             InitializeComponent();
             _context = context;
             _services = services;
+            _isShuttingDown = false;
+            _eventService = services.GetRequiredService<EventService>();
+            _workbookGenerator = services.GetRequiredService<WorkbookGenerator>();
+
+
             this.FormClosing += MainForm_FormClosing;
 
             this.Shown += Main_Shown;
         }
-
-        private bool IsRunningAsAdmin()
-        {
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
-            {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
-            }
-        }
-
 
         // Check to see if the event source is available if not create it and log the start
         private void Main_Shown(object sender, EventArgs e)
@@ -113,13 +115,14 @@ namespace SCBAlogger
             UpdateJurisdictionList();
              
         }
+        #endregion
 
         #region Control Updaters
 
         private void UpdateJurisdictionList()
         {
             var filteredJurisdictions = _context.Jurisdictions
-               .Where(j => j.IsActive).ToList();
+               .Where(j => j.IsActive).OrderBy(j => j.Name).ToList();
 
             JurisdictionCombo.DataSource = filteredJurisdictions;
         }
@@ -127,6 +130,7 @@ namespace SCBAlogger
         private void UpdateScannedTanksGrid()
         {
             Console.Write(this.eventName);
+            //TODO: Remove this test fixture
             string x = "Training Event";
             var filteredScans = _context.ScannedTanks.Where(s => s.Name == x).ToList();
             this.dataGridView1.DataSource = filteredScans;
@@ -144,7 +148,24 @@ namespace SCBAlogger
 
         #endregion
 
-        #region Evemt Handlers
+        #region .Net Event Handlers
+
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        //TODO: Pull this data from the database if it is available
+        private void AddUserPropertiesToListBox(object sender, string foo)
+        {
+            ListBox lb = (ListBox)sender;
+            String[] array = foo.Split(',', (char)StringSplitOptions.RemoveEmptyEntries);
+            lb.Items.Clear();
+            lb.Items.AddRange(array);
+
+        }
+
         private void CreateABarcodeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (CreateBarcode dialog = new CreateBarcode())
@@ -205,6 +226,7 @@ namespace SCBAlogger
             eventLog.WriteEntry("Application Configured", EventLogEntryType.Information, 10003, category);
         }
 
+        #region unused event handlers
         private void sendToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Cursor.Current = Cursors.WaitCursor;
@@ -214,17 +236,25 @@ namespace SCBAlogger
 
         }
 
-        //protected override void OnFormClosing(FormClosingEventArgs e)
-        //{
-        //    base.OnFormClosing(e);
 
-        //    var x = 2 + 4;
-        //    // This fires when:
-        //    // - User clicks X
-        //    // - Application.Exit()
-        //    // - Environment.Exit()
-        //    // - Windows shutdown/logoff (Reason = WindowsShutDown)
-        //}
+        private void Email_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void Create_Click(object sender, EventArgs e)
+        {
+            // CreateNewWorkBook();
+
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+        #endregion
 
         #region Shutdown
 
@@ -253,7 +283,7 @@ namespace SCBAlogger
 
             dlg.UpdateStatus("Saving operator changes...", Percent(++step, total));
             await Task.Delay(1000);
-            await SaveOperatorChangesAsync();
+            await CreateWorkbookAsync();
             
             dlg.UpdateStatus("Flushing logs...", Percent(++step, total));
             await Task.Delay(1000);
@@ -269,14 +299,24 @@ namespace SCBAlogger
             return (int)((step / (double)total) * 100);
         }
 
-        private async Task SaveOperatorChangesAsync()
+        private async Task CreateWorkbookAsync()
+        // There should only EVER be one event without a workbook, but
+        // it's a check will be made. 
         {
+            var events = 
             await _context.SaveChangesAsync();
         }
 
+
         private async Task FlushLogsAsync()
         {
-            await _context.SaveChangesAsync();
+            EventService _eventService = _services.GetRequiredService<EventService>();
+            var events = await _eventService.GetUnprocessedEventsAsync();
+            foreach (Event e in events)
+            {
+               await _workbookGenerator.WorkbookGeneratorAsync(e);
+
+            }
         }
 
         private async Task CloseDatabaseAsync()
@@ -337,150 +377,14 @@ namespace SCBAlogger
 
         #endregion
 
-    
-
-        private void Main_Load(object sender, EventArgs e)
+        
+        private bool IsRunningAsAdmin()
         {
-
-        }
-
-        //TODO: Pull this data from the database if it is available
-        private void AddUserPropertiesToListBox(object sender, string foo)
-        {
-            ListBox lb = (ListBox)sender;
-            String[] array = foo.Split(',', (char)StringSplitOptions.RemoveEmptyEntries);
-            lb.Items.Clear();
-            lb.Items.AddRange(array);
-
-        }
-
-    
-
-        //private void CreateNewWorkBook()
-        //{
-        //    ExcelPackage.License.SetNonCommercialPersonal("Stafford County Fire and Rescue");
-        //    using (var package = new ExcelPackage())
-        //    {
-        //        var events = _context.UnprocessedEvents
-        //       .FromSql($"Execute dbo.GetUnprocessedEvents")
-        //       .ToList();
-        //        string? sheetName = String.Empty;
-        //        if (events.Count > 0)
-        //        {
-        //            // TODO: the resuls are now orders on EventDate to premit them to be batched on Month and Year. Add the checks for changes in Month  and year to close out a workbook and start another
-        //            DateTime tmpDate = events[0].EventDate;
-        //            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(tmpDate.Month);
-        //            string workbookName = $"C:\\temp\\Scans{monthName}{tmpDate.Year}.xlsx";
-        //            // this creates a permonth/year workbook for the events.
-        //            // If there are multiple events in the same month they will be added to the same workbook but different sheets.
-        //            WindowsLog.WriteLogEntry(EventLogEntryType.Information, $"Retrieved {events.Count} unprocessed events from the database", 7001);
-        //            foreach (UnprocessedEvents t in events)
-        //            {
-        //                sheetName = $"{t.Name}";
-        //                DateTime eventDate = t.EventDate;
-        //                if ( sheetName == "")
-        //                {
-        //                    throw new Exception("Event Name is null or empty, cannot create sheet name");
-        //                }
-        //                var sheet = package.Workbook.Worksheets.Add(sheetName);
-        //                var stuff = _context.EventScans
-        //                     .FromSql($"Execute dbo.GetEventScans {t.ID}")
-        //                     .ToList();
-        //                WindowsLog.WriteLogEntry(EventLogEntryType.Information, $"Retrieved {stuff.Count} scans for event {t.ID}", 7002);
-
-        //                sheet.Cells["A1"].LoadFromCollection(stuff, true);
-        //                package.SaveAs(workbookName);
-
-        //                Event anEvent = _context.Events.Find(t.ID);
-        //                if (anEvent !=null)
-        //                {
-        //                    anEvent.ExcelFileName = workbookName;
-        //                }  
-        //            }
-        //            _context.SaveChanges();
-        //        }
-        //    }
-        //}
-
-
-        private void Email_Click(object sender, EventArgs e)
-        {
-            //string secretProperty = Settings.Default.EmailSecretName;
-            //string txtPassword;
-            //string txtAccountName;
-            //NetworkCredential emailCredential;
-
-            //var cred = CredentialManager.GetCredentials(secretProperty);
-
-
-            //if (cred != null)
-            //{
-            //    txtPassword = cred.Password;
-            //    txtAccountName = cred.UserName;
-
-            //    emailCredential = new NetworkCredential(txtAccountName, txtPassword);
-            //    WindowsLog.WriteLogEntry(EventLogEntryType.Information, $"Retrieved the secret for {secretProperty}", 20002);
-            //}
-            //else
-            //{
-            //    MessageBox.Show("No secret found.");
-            //    WindowsLog.WriteLogEntry(EventLogEntryType.Error, $"No secret found for {secretProperty}", 2003);
-            //    return;
-            //}
-
-            //MimeMessage msg = new MimeMessage();
-            //msg.From.Add(new MailboxAddress(txtAccountName, $"{txtAccountName} @gmail.com"));
-
-            //var addresses = Settings.Default.DestinationEmailAddresses.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            //foreach (string name in addresses)
-            //{
-            //    String txtName = name.Split("@")[0];
-            //    msg.To.Add(new MailboxAddress(txtName, name));
-            //}
-
-            //msg.Subject = "AirSpreadsheets";
-            //var body = new TextPart("plain")
-            //{
-            //    Text = "Please find attached the latest batch of SCBA fill workbooks/spreadsheets."
-            //};
-
-            //var attachmentPath = @"C:\temp\ScansFebruary2026.xlsx";
-            //var attachment = new MimePart("application", "xlsx")
-            //{
-            //    Content = new MimeContent(File.OpenRead(attachmentPath)),
-            //    ContentDescription = ContentDisposition.Attachment,
-            //    ContentTransferEncoding = ContentEncoding.Base64,
-            //    FileName = Path.GetFileName(attachmentPath)
-            //};
-
-            //var multipart = new Multipart("mixed");
-            //multipart.Add(body);
-            //multipart.Add(attachment);
-            //msg.Body = multipart;
-
-            //using (var client = new SmtpClient())
-            //{
-            //    client.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-
-            //    // Use App Password (not your regular Gmail password)
-            //    client.Authenticate(txtAccountName, txtPassword);
-
-            //    client.Send(msg);
-            //    client.Disconnect(true);
-            //}
-        }
-
-
-        private void Create_Click(object sender, EventArgs e)
-        {
-            // CreateNewWorkBook();
-
-
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
         }
     }
 }

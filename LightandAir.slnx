@@ -1,11 +1,8 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path="ComboBox.txt" />
-    <File Path="DBConfig.txt" />
-    <File Path="Gridview.txt" />
-    <File Path="NotifyIcon.txt" />
-    <File Path="TextFile1.txt" />
-  </Folder>
+  <Folder Name="/Solution Items/" />
+  <Project Path="../SCBA/SCBA.sqlproj" Id="644888af-96d6-41d3-ad69-4eebe70a1345">
+    <Build />
+    <Deploy />
+  </Project>
   <Project Path="SCBAlogger/SCBAlogger.csproj" />
-  <Project Path="TempScaffold/TempScaffold/TempScaffold.csproj" />
 </Solution>
