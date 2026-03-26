@@ -1,13 +1,15 @@
 ﻿using AdysTech.CredentialManager;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 
 //using OfficeOpenXml;
 using SCBAlogger.Data;
 using SCBAlogger.Model;
+using SCBAlogger.Model.DTOS;
 using SCBAlogger.Properties;
-using SCBAlogger.Services;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Drawing.Text;
@@ -34,42 +36,38 @@ namespace SCBAlogger
         private readonly Config _config;
         // Binding sources for the controls
         private BindingSource _bindingSourceScans = new BindingSource();
-        private BindingSource _bindingSourceOperators = new BindingSource();
-        private BindingSource _bindingSourceJurisdictions = new BindingSource();
+       
         private Boolean isValidHydrostate = false;
         private Boolean isValidSerialNumber = false;
         private readonly IServiceProvider _services;
         private bool _isShuttingDown = false;
-        private readonly EventService _eventService;
-        private readonly WorkbookGenerator _workbookGenerator;
-
+       
+        private bool isCreated;
 
         #region Main Constructors
         // Parameterless constructor kept for designer support
+
         public Main()
         {
             InitializeComponent();
-            this.Shown += Main_Shown;
+            //    private readonly SCBAContext context = new SCBAContext();
+            _isShuttingDown = false;
+             this.FormClosing += MainForm_FormClosing;
+             this.Shown += Main_Shown;
+            
         }
 
-        // Constructor used by DI at runtime
-        public Main(SCBAContext context, IServiceProvider services)
+        public Main(SCBAContext context)
         {
             InitializeComponent();
-            _context = context;
-            _services = services;
             _isShuttingDown = false;
-            _eventService = services.GetRequiredService<EventService>();
-            _workbookGenerator = services.GetRequiredService<WorkbookGenerator>();
-
-
             this.FormClosing += MainForm_FormClosing;
-
             this.Shown += Main_Shown;
+            _context = context;
         }
 
         // Check to see if the event source is available if not create it and log the start
-        private void Main_Shown(object sender, EventArgs e)
+        private async void Main_Shown(object sender, EventArgs e)
         {
             try
             {
@@ -93,7 +91,11 @@ namespace SCBAlogger
             bool iscreated = false;
             try
             {
+                //iscreated = await _eventService.CanConnectAsync();
                 iscreated = _context.Database.CanConnect();
+                if (!iscreated)
+                    throw new Exception();
+
             }
             catch (Exception ex)
             {
@@ -113,7 +115,7 @@ namespace SCBAlogger
 
             UpdateOperatorList();
             UpdateJurisdictionList();
-             
+
         }
         #endregion
 
@@ -126,10 +128,10 @@ namespace SCBAlogger
 
             JurisdictionCombo.DataSource = filteredJurisdictions;
         }
-       
+
         private void UpdateScannedTanksGrid()
         {
-            Console.Write(this.eventName);
+    
             //TODO: Remove this test fixture
             string x = "Training Event";
             var filteredScans = _context.ScannedTanks.Where(s => s.Name == x).ToList();
@@ -138,11 +140,7 @@ namespace SCBAlogger
 
         private void UpdateOperatorList()
         {
-            var filteredOperators = _context.Operators
-                    .Where(o => o.IsActive)
-                       .OrderBy(o => o.OperatorName)
-                       .ToList();
-
+            var filteredOperators = _context.Operators.Where(s => s.IsActive).ToList();
             comboBoxOperators.DataSource = filteredOperators;
         }
 
@@ -196,34 +194,38 @@ namespace SCBAlogger
 
         private void ConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var child = _services.GetRequiredService<Config>();
-
-
-            if (child.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+            using (Config dialog = new Config(_context))
             {
-                this.applicationStatus.Text = "Ready";
-                this.applicationStatus.BackColor = Color.Green;
-                this.scannerData.Enabled = true;
 
-                if (child.is_updated)
+
+                if (dialog.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
                 {
-                    eventLog.WriteEntry("Application Config updated", EventLogEntryType.Information, 10002);
-                    this.toolStripStatusLabel2.Text = "Configuration Updated";
+                    this.applicationStatus.Text = "Ready";
+                    this.applicationStatus.BackColor = Color.Green;
+                    this.scannerData.Enabled = true;
 
-                    eventName = SCBAlogger.Properties.Settings.Default.EventName;
-                    this.labelScans.Text = "Event: " + eventName;
-                    this.labelScans.ForeColor = SystemColors.ControlText;
-                    this.labelScans.BackColor = SystemColors.Control;
+                    if (dialog.is_updated)
+                    {
+                        eventLog.WriteEntry("Application Config updated", EventLogEntryType.Information, 10002);
+                        this.toolStripStatusLabel2.Text = "Configuration Updated";
+
+                        eventName = SCBAlogger.Properties.Settings.Default.EventName;
+                        this.labelScans.Text = "Event: " + eventName;
+                        this.labelScans.ForeColor = SystemColors.ControlText;
+                        this.labelScans.BackColor = SystemColors.Control;
+                    }
                 }
 
+
                 UpdateScannedTanksGrid();
+
                 UpdateOperatorList();
+
                 UpdateJurisdictionList();
+
+
+                eventLog.WriteEntry("Application Configured", EventLogEntryType.Information, 10003, category);
             }
-
-
-
-            eventLog.WriteEntry("Application Configured", EventLogEntryType.Information, 10003, category);
         }
 
         #region unused event handlers
@@ -266,10 +268,11 @@ namespace SCBAlogger
             e.Cancel = true; // prevent immediate close
             _isShuttingDown = true;
 
-            var dlg = _services.GetRequiredService<ProgressDialog>();
+            // TODO: Remove the last bit if DI
+            var dlg = new ProgressDialog();
             dlg.Show();
 
-           await RunShutdownTasksAsync(dlg);
+            await RunShutdownTasksAsync(dlg);
 
             dlg.Close();
             this.Close();
@@ -283,11 +286,11 @@ namespace SCBAlogger
 
             dlg.UpdateStatus("Saving operator changes...", Percent(++step, total));
             await Task.Delay(1000);
-            await CreateWorkbookAsync();
-            
+            //await CreateWorkbookAsync();
+
             dlg.UpdateStatus("Flushing logs...", Percent(++step, total));
             await Task.Delay(1000);
-            await FlushLogsAsync();
+            await CreateWorkbooks();
 
             dlg.UpdateStatus("Closing database...", Percent(++step, total));
             await Task.Delay(1000);
@@ -303,20 +306,29 @@ namespace SCBAlogger
         // There should only EVER be one event without a workbook, but
         // it's a check will be made. 
         {
-            var events = 
-            await _context.SaveChangesAsync();
+           var events = 
+           await _context.SaveChangesAsync();
         }
 
 
-        private async Task FlushLogsAsync()
+        private async Task CreateWorkbooks()
         {
-            EventService _eventService = _services.GetRequiredService<EventService>();
-            var events = await _eventService.GetUnprocessedEventsAsync();
-            foreach (Event e in events)
-            {
-               await _workbookGenerator.WorkbookGeneratorAsync(e);
 
+            var events = await _context.GetUnprocessedEventsAsync();
+            int missingWorkBooks = events.Count;
+            /// Move this to the event Service???
+            foreach (UnprocessedEventDto ev in events)
+            {
+                Debug.WriteLine($"event {ev.EventId}, {ev.EventName}");
+                var scans = await _context.GetEventScansAsync(ev.EventId);
+                Debug.WriteLine(scans.Count);
+
+                //await _workbookGeneratorService.CreateWorkbookAsync(ev, List<Scan> scans);
             }
+
+
+
+
         }
 
         private async Task CloseDatabaseAsync()
@@ -377,7 +389,9 @@ namespace SCBAlogger
 
         #endregion
 
-        
+
+
+
         private bool IsRunningAsAdmin()
         {
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
@@ -388,4 +402,5 @@ namespace SCBAlogger
         }
     }
 }
+
 

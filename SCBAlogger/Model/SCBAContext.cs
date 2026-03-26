@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using SCBAlogger.Model.
+
+using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace SCBAlogger.Model;
 
@@ -120,4 +123,137 @@ public partial class SCBAContext : DbContext
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    // ------------------------------------------------------------
+    //  Helper: Execute Stored Procedure and return DbDataReader
+    // ------------------------------------------------------------
+    private async Task<DbDataReader> ExecuteStoredProcedureAsync(
+        string procedureName,
+        params SqlParameter[] parameters)
+    {
+        await Database.OpenConnectionAsync();
+
+        var cmd = Database.GetDbConnection().CreateCommand();
+        cmd.CommandText = procedureName;
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        foreach (var p in parameters)
+            cmd.Parameters.Add(p);
+
+        return await cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection);
+    }
+
+    // ------------------------------------------------------------
+    //  GetEventScans
+    //  Returns: CylinderId, SerialNumber, Pressure, Condition, Timestamp
+    // ------------------------------------------------------------
+    public async Task<List<EventScanDto>> GetEventScansAsync(int eventId)
+    {
+        var list = new List<EventScanDto>();
+
+        await using var reader = await ExecuteStoredProcedureAsync(
+            "dbo.GetEventScans",
+            new SqlParameter("@EventId", eventId)
+        );
+
+        while (await reader.ReadAsync())
+        {
+            list.Add(new EventScanDto
+            {
+                CylinderId = reader.GetInt32(0),
+                SerialNumber = reader.GetString(1),
+                Pressure = reader.GetInt32(2),
+                Condition = reader.GetString(3),
+                Timestamp = reader.GetDateTime(4)
+            });
+        }
+
+        return list;
+    }
+
+    // ------------------------------------------------------------
+    //  GetUnprocessedEvents
+    //  Returns: EventId, EventName, EventDate, Jurisdiction
+    // ------------------------------------------------------------
+    public async Task<List<UnprocessedEventDto>> GetUnprocessedEventsAsync()
+    {
+        var list = new List<UnprocessedEventDto>();
+
+        await using var reader = await ExecuteStoredProcedureAsync(
+            "dbo.GetUnprocessedEvents"
+        );
+
+        while (await reader.ReadAsync())
+        {
+            list.Add(new UnprocessedEventDto
+            {
+                EventId = reader.GetInt32(0),
+                EventName = reader.GetString(1),
+                EventDate = reader.GetDateTime(2),
+                Jurisdiction = reader.GetString(3)
+            });
+        }
+
+        return list;
+    }
+
+    // ------------------------------------------------------------
+    //  MarkCompressorState
+    //  Parameters: @EventId, @State
+    //  No result set
+    // ------------------------------------------------------------
+    public async Task MarkCompressorStateAsync(int eventId, string state)
+    {
+        await using var _ = await ExecuteStoredProcedureAsync(
+            "dbo.MarkCompressorState",
+            new SqlParameter("@EventId", eventId),
+            new SqlParameter("@State", state)
+        );
+    }
+
+    // ------------------------------------------------------------
+    //  MarkOperatorState
+    //  Parameters: @OperatorId, @State
+    //  No result set
+    // ------------------------------------------------------------
+    public async Task MarkOperatorStateAsync(int operatorId, string state)
+    {
+        await using var _ = await ExecuteStoredProcedureAsync(
+            "dbo.MarkOperatorState",
+            new SqlParameter("@OperatorId", operatorId),
+            new SqlParameter("@State", state)
+        );
+    }
+
+    // ------------------------------------------------------------
+    //  ViewScannedTanks
+    //  Returns: CylinderId, SerialNumber, HydroDate, Owner
+    // ------------------------------------------------------------
+    public async Task<List<CylinderDto>> ViewScannedTanksAsync(int eventId)
+    {
+        var list = new List<CylinderDto>();
+
+        await using var reader = await ExecuteStoredProcedureAsync(
+            "dbo.ViewScannedTanks",
+            new SqlParameter("@EventId", eventId)
+        );
+
+        while (await reader.ReadAsync())
+        {
+            list.Add(new CylinderDto
+            {
+                CylinderId = reader.GetInt32(0),
+                SerialNumber = reader.GetString(1),
+                HydroDate = reader.GetDateTime(2),
+                Owner = reader.GetString(3)
+            });
+        }
+
+        return list;
+    }
+}
+}
+
+
+
 }

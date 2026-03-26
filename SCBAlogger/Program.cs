@@ -3,9 +3,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SCBAlogger.Data;
 using SCBAlogger.Model;
-using SCBAlogger.Services;
 using System;
 using System.Windows.Forms;
 
@@ -33,48 +33,23 @@ namespace SCBAlogger
                 .AddEnvironmentVariables()
                 .Build();
 
-            // Setup DI
-            var serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection, configuration);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            // Create and run the main form
-            //Application.Run(new Main());
-            Application.Run(
-                Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Main>(serviceProvider));
+            
+
+            // DefaultConnection
+         
+            string conn = configuration.GetConnectionString("DefaultConnection");
+
+            var contextOptions = new DbContextOptionsBuilder<SCBAContext>().UseSqlServer(conn).Options;
+            SCBAContext context = new SCBAContext(contextOptions);
+            context.Database.EnsureCreated();
+
+
+
+            Application.Run(new Main(context));
         }
 
 
-        private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
-        {
-            // Register IConfiguration so services can consume configuration values
-            services.AddSingleton<IConfiguration>(configuration);
-
-            // Resolve connection string priority:
-            // 1. appsettings.json / appsettings.{Machine}.json -> "ConnectionStrings:DefaultConnection"
-            // 2. Environment variable "SCBAlogger_CONNECTION"
-            // 3. Fallback to local SQLExpress instance
-            string connFromConfig = configuration.GetConnectionString("DefaultConnection");
-            string connFromEnv = Environment.GetEnvironmentVariable("SCBAlogger_CONNECTION");
-            string conn = connFromConfig
-                          ?? connFromEnv
-                          ?? @"Data Source=.\SQLEXPRESS;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30";
-
-            services.AddDbContext<SCBAContext>(options =>
-                options.UseSqlServer(conn));
-
-            services.AddTransient<Main>();
-            services.AddTransient<Config>();
-            services.AddTransient<ProgressDialog>();
-            services.AddDbContext<SCBAContext>();
-            services.AddScoped<IDatabaseExecutionService, DatabaseExecutionService>();
-            services.AddScoped<JurisdictionService>();
-            services.AddScoped<EventService>();
-            services.AddScoped<WorkbookGenerator>();
-
-
-
-
-        }
+        
     }
 }
