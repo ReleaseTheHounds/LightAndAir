@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SCBAlogger.Model;
 using SCBAlogger.Model.DTOS;
 using System;
@@ -162,16 +163,44 @@ public partial class SCBAContext : DbContext
         {
             list.Add(new EventScanDto
             {
-                CylinderId = reader.GetString(0),
-                SerialNumber = reader.GetString(1),
+                SerialNumber = reader.GetString(0),
+                HydroStatDate = reader.GetString(1),
                 Pressure = reader.GetInt32(2),
                 Condition = reader.GetString(3),
-                Timestamp = reader.GetString(4)
+                Jurisdiction = reader.GetString(4),
+                Operator = reader.GetString(5)
+              
             });
         }
 
         return list;
     }
+
+    /// <summary>
+    /// Returns a list of disticnt  Jurisdiction Values for an Evnt
+    /// </summary>
+    /// <param name="eventID"></param>
+    /// <returns>Distinct list of jurisdictions</returns>
+    public async Task<List<Jurisdiction>> GetDistictJurisdictions(int eventId)
+    {
+        var list = new List<Jurisdiction>();
+        await using var reader = await ExecuteStoredProcedureAsync(
+            "dbo.SelectUniqueJurisdicionsFromEvent",
+            new SqlParameter("@EventId", eventId));
+
+        //while (await reader.ReadAsync())
+        //{
+        //    int JurisdictionID = reader.GetInt32(0);
+        //    string JurisdictionName = Jurisdictions.Where(j => ID == Jurisdiction).Select(j => j.Name).FirstOrDefault;
+           
+
+        //}
+
+
+        return list;
+
+    }
+
 
     // ------------------------------------------------------------
     //  GetUnprocessedEvents
@@ -191,7 +220,8 @@ public partial class SCBAContext : DbContext
             {
                 EventId = reader.GetInt32(0),
                 EventName = reader.GetString(1),
-                EventDate = reader.GetDateTime(2)
+                Compressor = reader.GetString(2),
+                EventDate = reader.GetDateTime(3)
             });
         }
 

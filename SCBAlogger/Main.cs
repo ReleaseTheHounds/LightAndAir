@@ -10,6 +10,7 @@ using SCBAlogger.Data;
 using SCBAlogger.Model;
 using SCBAlogger.Model.DTOS;
 using SCBAlogger.Properties;
+using SCBAlogger.Service;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Drawing.Text;
@@ -314,16 +315,21 @@ namespace SCBAlogger
         private async Task CreateWorkbooks()
         {
 
-            var events = await _context.GetUnprocessedEventsAsync();
+            List<UnprocessedEventDto> events = await _context.GetUnprocessedEventsAsync();
             int missingWorkBooks = events.Count;
             /// Move this to the event Service???
             foreach (UnprocessedEventDto ev in events)
             {
                 Debug.WriteLine($"event {ev.EventId}, {ev.EventName}");
+                // Create a new workbook for the event using the name and the date. eg: Cropp Rd 2/7/2026.
+                // Determine the number of jurisdictions in the event.
+             
                 var scans = await _context.GetEventScansAsync(ev.EventId);
+               
                 Debug.WriteLine(scans.Count);
-
-                //await _workbookGeneratorService.CreateWorkbookAsync(ev, List<Scan> scans);
+                //  Generate the workbook or ev.EventName and Event.Date.
+                WorkbookService workbookService = new WorkbookService();    
+                workbookService.Create(ev,scans);
             }
 
 
