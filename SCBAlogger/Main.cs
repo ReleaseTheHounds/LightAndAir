@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
 //using OfficeOpenXml;
@@ -21,6 +22,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using ZXing.Client.Result;
+using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 namespace SCBAlogger
 {
@@ -37,13 +39,13 @@ namespace SCBAlogger
         private readonly Config _config;
         // Binding sources for the controls
         private BindingSource _bindingSourceScans = new BindingSource();
-       
-        private Boolean isValidHydrostate = false;
-        private Boolean isValidSerialNumber = false;
-        private readonly IServiceProvider _services;
+
+        //private Boolean isValidHydrostate = false;
+        //private Boolean isValidSerialNumber = false;
+        //private readonly IServiceProvider _services;
         private bool _isShuttingDown = false;
-       
-        private bool isCreated;
+
+        //private bool isCreated;
 
         #region Main Constructors
         // Parameterless constructor kept for designer support
@@ -53,9 +55,9 @@ namespace SCBAlogger
             InitializeComponent();
             //    private readonly SCBAContext context = new SCBAContext();
             _isShuttingDown = false;
-             this.FormClosing += MainForm_FormClosing;
-             this.Shown += Main_Shown;
-            
+            this.FormClosing += MainForm_FormClosing;
+            this.Shown += Main_Shown;
+
         }
 
         public Main(SCBAContext context)
@@ -132,7 +134,7 @@ namespace SCBAlogger
 
         private void UpdateScannedTanksGrid()
         {
-    
+
             //TODO: Remove this test fixture
             string x = "Training Event";
             var filteredScans = _context.ScannedTanks.Where(s => s.Name == x).ToList();
@@ -307,8 +309,8 @@ namespace SCBAlogger
         // There should only EVER be one event without a workbook, but
         // it's a check will be made. 
         {
-           var events = 
-           await _context.SaveChangesAsync();
+            var events =
+            await _context.SaveChangesAsync();
         }
 
 
@@ -323,18 +325,19 @@ namespace SCBAlogger
                 Debug.WriteLine($"event {ev.EventId}, {ev.EventName}");
                 // Create a new workbook for the event using the name and the date. eg: Cropp Rd 2/7/2026.
                 // Determine the number of jurisdictions in the event.
-             
+
                 var scans = await _context.GetEventScansAsync(ev.EventId);
-               
+
                 Debug.WriteLine(scans.Count);
                 //  Generate the workbook or ev.EventName and Event.Date.
-                WorkbookService workbookService = new WorkbookService();    
-                workbookService.Create(ev,scans);
+                WorkbookService workbookService = new WorkbookService();
+                string path = workbookService.Create(ev, scans);
+
+                await _context.Events.Where(e => e.Id == ev.EventId)
+                     .ExecuteUpdateAsync(setters => setters
+                     .SetProperty(e => e.ExcelFileName, path));
+
             }
-
-
-
-
         }
 
         private async Task CloseDatabaseAsync()

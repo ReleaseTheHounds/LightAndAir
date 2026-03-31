@@ -386,7 +386,7 @@
         private System.Windows.Forms.TabPage tabJuristictions;
         private System.Windows.Forms.ComboBox operatorComboBox;
         private System.Windows.Forms.ComboBox jurisdictionComboBox;
-        private System.Windows.Forms.Button OkButton;
+        //private System.Windows.Forms.Button OkButton;
         private System.Windows.Forms.Button buttonDelete;
         private System.Windows.Forms.Button buttonAdd;
         private System.Windows.Forms.Button btnJurisdictionDeactivate;

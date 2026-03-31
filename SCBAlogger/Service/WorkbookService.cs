@@ -1,16 +1,25 @@
-﻿using OfficeOpenXml;
+﻿using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using SCBAlogger.Data;
 using SCBAlogger.Model;
+using SCBAlogger.Model.DTOS;
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using SCBAlogger.Model.DTOS;
 
+/* await _context.Events.Where(e => e.Id == ev.EventId)
+                     .ExecuteUpdateAsync(setters => setters
+                     .SetProperty(e => e.WorkbookCreatedDate, DateTime.Now));
+
+*/
 
 namespace SCBAlogger.Service
 {
     public class WorkbookService
     {
+        
 
         public WorkbookService()
         {
@@ -18,13 +27,13 @@ namespace SCBAlogger.Service
             ExcelPackage.License.SetNonCommercialOrganization("StaffordCountyFireAndRescue");
         }
 
-        public DateTime Create(UnprocessedEventDto ev, List<EventScanDto> scans)
+        public string Create(UnprocessedEventDto ev, List<EventScanDto> scans)
         {
 
             var jurisdictions = scans.Select(s => s.Jurisdiction).Distinct().ToList();
             // string firstSheetTitle =  (jurisdictions.Count == 1) ? $"{jurisdictions[0]}" : "All Tanks filled";
             string firstSheetTitle = ev.EventName;
-            string sheetName = (jurisdictions.Count == 1) ? $"{jurisdictions[0]}" : "All Tanks";
+            string sheetName = (jurisdictions.Count == 1) ? $"{jurisdictions[0]}" : "All Tank Fills";
             using var package = new ExcelPackage();
             var ws = package.Workbook.Worksheets.Add(sheetName);
 
@@ -32,15 +41,15 @@ namespace SCBAlogger.Service
             // add some logic to tailor this for the # of jurisdictions.
             ws.Name = "All Tanks filled";
             var headerFooter = ws.HeaderFooter;
-         
+
 
             headerFooter.differentFirst = false;
-            headerFooter.FirstHeader.CenteredText = firstSheetTitle;
-            headerFooter.FirstHeader.RightAlignedText = ev.EventDate.ToShortDateString();
-            headerFooter.FirstHeader.LeftAlignedText = ev.Compressor;
-            headerFooter.FirstFooter.CenteredText = $"Generated on {DateTime.Now:ddMMMyyy}";    
-            headerFooter.FirstFooter.RightAlignedText = $"Page {ExcelHeaderFooter.PageNumber} of {ExcelHeaderFooter.NumberOfPages}";
-            headerFooter.
+            headerFooter.OddHeader.CenteredText = firstSheetTitle;
+            headerFooter.OddHeader.RightAlignedText = ev.EventDate.ToShortDateString();
+            headerFooter.OddHeader.LeftAlignedText = ev.Compressor;
+            headerFooter.OddFooter.CenteredText = $"Generated on {DateTime.Now:ddMMMyyy}";
+            headerFooter.OddFooter.RightAlignedText = $"Page {ExcelHeaderFooter.PageNumber} of {ExcelHeaderFooter.NumberOfPages}";
+            
 
             // Write headers
             ws.Cells[1, 1].Value = "Serial Number";
@@ -68,20 +77,20 @@ namespace SCBAlogger.Service
 
             if (jurisdictions.Count > 1)
             {
-                jurisdictions.RemoveAt(0);
-
-
-                //headerFooter.differentFirst = false;
-                //headerFooter.FirstHeader.CenteredText = firstSheetTitle;
-                //headerFooter.FirstHeader.RightAlignedText = ev.EventDate.ToShortDateString();
-                //headerFooter.FirstHeader.LeftAlignedText = ev.Compressor;
-                //headerFooter.FirstFooter.CenteredText = $"Generated on {DateTime.Now:ddMMMyyy}";
-                //headerFooter.FirstFooter.RightAlignedText = $"Page {ExcelHeaderFooter.PageNumber} of {ExcelHeaderFooter.NumberOfPages}";
-
 
                 foreach (var jurisdiction in jurisdictions)
                 {
+
                     var jurisdictionSheet = package.Workbook.Worksheets.Add(jurisdiction);
+
+                    jurisdictionSheet.HeaderFooter.OddHeader.CenteredText = $"{ev.EventName} Tank Fills for {jurisdiction}";
+                    jurisdictionSheet.HeaderFooter.OddHeader.RightAlignedText = ev.EventDate.ToShortDateString();
+                    jurisdictionSheet.HeaderFooter.OddHeader.LeftAlignedText = ev.Compressor;
+                    jurisdictionSheet.HeaderFooter.OddFooter.CenteredText = $"{ExcelHeaderFooter.SheetName} Generated on {DateTime.Now:ddMMMyyy}";
+                    jurisdictionSheet.HeaderFooter.OddFooter.RightAlignedText = $"Page {ExcelHeaderFooter.PageNumber} of {ExcelHeaderFooter.NumberOfPages}";
+
+                    
+
                     jurisdictionSheet.Cells[1, 1].Value = "Serial Number";
                     jurisdictionSheet.Cells[1, 2].Value = "Hydrostat Date";
                     jurisdictionSheet.Cells[1, 3].Value = "Condition";
@@ -107,14 +116,16 @@ namespace SCBAlogger.Service
 
 
 
-            
+
             var filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                $"Event_{filename}.xlsx");
+                $"{filename}.xlsx");
 
             package.SaveAs(new FileInfo(filePath));
 
-            return DateTime.Now;
+
+
+            return filePath;
 
         }
 
