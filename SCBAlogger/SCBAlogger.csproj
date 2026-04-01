@@ -9,13 +9,22 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>3f62f460-c3a2-4b15-a65c-5a81e6db1e57</UserSecretsId>
     <ApplicationIcon>fireman-avatar_114351.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;CA1416</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <NoWarn>1701;1702;CA1416</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;CA1416</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NoWarn>1701;1702;CA1416</NoWarn>
   </PropertyGroup>
 

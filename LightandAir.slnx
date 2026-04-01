@@ -1,8 +1,24 @@
 <Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="DefaultBuild" />
+    <BuildType Name="Release" />
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/ISSUE_TEMPLATE/">
+    <File Path="feature_request.yml" />
+  </Folder>
   <Folder Name="/Solution Items/" />
   <Project Path="../SCBA/SCBA.sqlproj" Id="644888af-96d6-41d3-ad69-4eebe70a1345">
+    <BuildType Solution="DefaultBuild|*" Project="Release" />
     <Build />
     <Deploy />
   </Project>
-  <Project Path="SCBAlogger/SCBAlogger.csproj" />
+  <Project Path="SCBAlogger/SCBAlogger.csproj">
+    <BuildType Solution="DefaultBuild|*" Project="Release" />
+    <Platform Solution="DefaultBuild|x64" Project="x64" />
+    <Platform Solution="Release|x64" Project="x64" />
+  </Project>
 </Solution>

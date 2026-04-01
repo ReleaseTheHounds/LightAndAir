@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using SCBAlogger.Service;
+
 
 /* await _context.Events.Where(e => e.Id == ev.EventId)
                      .ExecuteUpdateAsync(setters => setters
@@ -59,6 +61,7 @@ namespace SCBAlogger.Service
             ws.Cells[1, 5].Value = "Operator";
             ws.Cells[1, 6].Value = "Jurisdiction";
 
+            
             int row = 2;
             foreach (var scan in scans)
             {
@@ -71,13 +74,19 @@ namespace SCBAlogger.Service
                 row++;
             }
 
+
+
             ws.Cells.AutoFitColumns();
 
+            
 
 
             if (jurisdictions.Count > 1)
             {
+                ChartService charts = new ChartService();
+                charts.AddJurisdictionPieChart(ws);
 
+                // Create a separate sheet for each jurisdiction
                 foreach (var jurisdiction in jurisdictions)
                 {
 
@@ -108,14 +117,15 @@ namespace SCBAlogger.Service
                     }
                     jurisdictionSheet.Cells.AutoFitColumns();
                 }
+
+                // Add a summary sheet with the jurisdiction breakdown
+                // Move the summary sheet to the end of the workbook
+                package.Workbook.Worksheets.MoveToEnd(1);
+
             }
 
 
             string filename = $"{ev.EventName}_{DateTime.Now:ddMMMyyy}";
-
-
-
-
 
             var filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),

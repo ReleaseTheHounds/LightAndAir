@@ -287,13 +287,15 @@ namespace SCBAlogger
             int step = 0;
             int total = 3; // number of tasks
 
-            dlg.UpdateStatus("Saving operator changes...", Percent(++step, total));
-            await Task.Delay(1000);
-            //await CreateWorkbookAsync();
+            
 
-            dlg.UpdateStatus("Flushing logs...", Percent(++step, total));
+            dlg.UpdateStatus("Creating Workbooks...", Percent(++step, total));
             await Task.Delay(1000);
             await CreateWorkbooks();
+
+            dlg.UpdateStatus("Trying to email Workbooks...", Percent(++step, total));
+            await Task.Delay(1000);
+            //await CreateWorkbookAsync();
 
             dlg.UpdateStatus("Closing database...", Percent(++step, total));
             await Task.Delay(1000);
@@ -322,21 +324,24 @@ namespace SCBAlogger
             /// Move this to the event Service???
             foreach (UnprocessedEventDto ev in events)
             {
-                Debug.WriteLine($"event {ev.EventId}, {ev.EventName}");
+            
                 // Create a new workbook for the event using the name and the date. eg: Cropp Rd 2/7/2026.
                 // Determine the number of jurisdictions in the event.
 
                 var scans = await _context.GetEventScansAsync(ev.EventId);
 
-                Debug.WriteLine(scans.Count);
+               
                 //  Generate the workbook or ev.EventName and Event.Date.
                 WorkbookService workbookService = new WorkbookService();
                 string path = workbookService.Create(ev, scans);
 
+#if !DEBUG
                 await _context.Events.Where(e => e.Id == ev.EventId)
                      .ExecuteUpdateAsync(setters => setters
                      .SetProperty(e => e.ExcelFileName, path));
-
+#endif
+                // In debug, just log the path to the generated file. 
+                eventLog.WriteEntry($"Generated workbook for event {ev.EventName} at path: {path}", EventLogEntryType.Information, 9000, category);
             }
         }
 
@@ -346,9 +351,9 @@ namespace SCBAlogger
         }
 
 
-        #endregion
+#endregion
 
-        #endregion
+#endregion
 
         #region input handlers
 
